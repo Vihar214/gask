@@ -1,0 +1,13 @@
+# Binaries
+gask
+
+# Database files
+.gask/gask.db
+
+# Dependencies
+vendor/
+
+# IDE/Tooling
+.vscode/
+.idea/
+.DS_Store
