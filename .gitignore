@@ -1,8 +1,8 @@
 # Binaries
 gask
 
-# Database files
-.gask/gask.db
+# gask files
+.gask/
 
 # Dependencies
 vendor/
