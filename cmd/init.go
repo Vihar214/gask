@@ -54,7 +54,11 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("init: migration failed: %w", err)
 		}
-		defer client.Close()
+		defer func() {
+			if cerr := client.Close(); cerr != nil {
+				fmt.Fprintf(os.Stderr, "Error closing database connection: %v\n", cerr)
+			}
+		}()
 
 		// 4. Interactive Editor Prompt
 		fmt.Println("Select your preferred editor for tasks:")

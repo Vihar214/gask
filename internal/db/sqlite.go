@@ -22,7 +22,7 @@ func Open(ctx context.Context, dbPath string) (*ent.Client, error) {
 
 	// Run the auto migration tool
 	if err := client.Schema.Create(ctx); err != nil {
-		client.Close()
+		_ = client.Close()
 		return nil, fmt.Errorf("failed creating schema resources: %w", err)
 	}
 
