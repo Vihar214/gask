@@ -12,18 +12,20 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	_ "modernc.org/sqlite"
 )
 
 func setupTestRepo(t *testing.T) (*Repository, *ent.Client) {
-	// Using sqlite3 as the driver name as it is what Ent expects for modernc.org/sqlite
 	client := enttest.Open(t, "sqlite3", "file:testdb?mode=memory&cache=shared&_fk=1")
 	return NewRepository(client), client
 }
 
 func TestCreateTask_Success(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	title := "Test Task"
@@ -39,7 +41,11 @@ func TestCreateTask_Success(t *testing.T) {
 
 func TestCreateTask_EmptyTitle(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	_, err := repo.CreateTask(ctx, "")
@@ -50,7 +56,11 @@ func TestCreateTask_EmptyTitle(t *testing.T) {
 
 func TestCreateTask_TitleTooLong(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	title := ""
@@ -65,7 +75,11 @@ func TestCreateTask_TitleTooLong(t *testing.T) {
 
 func TestGetTaskByID_NotFound(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	_, err := repo.GetTaskByID(ctx, 999)
@@ -75,7 +89,11 @@ func TestGetTaskByID_NotFound(t *testing.T) {
 
 func TestUpdateStatus_Valid(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	task, err := repo.CreateTask(ctx, "Test Task")
@@ -91,7 +109,11 @@ func TestUpdateStatus_Valid(t *testing.T) {
 
 func TestUpdateStatus_InvalidEnum(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	task, err := repo.CreateTask(ctx, "Test Task")
@@ -104,7 +126,11 @@ func TestUpdateStatus_InvalidEnum(t *testing.T) {
 
 func TestUpdateDescription_TooLong(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	task, err := repo.CreateTask(ctx, "Test Task")
@@ -121,7 +147,11 @@ func TestUpdateDescription_TooLong(t *testing.T) {
 
 func TestGetAllTasks_Order(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Fatalf("client.Close: %v", err)
+		}
+	}()
 
 	ctx := context.Background()
 	_, err := repo.CreateTask(ctx, "Task 1")
@@ -140,7 +170,11 @@ func TestGetAllTasks_Order(t *testing.T) {
 func TestEnsureInitialized(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "gask-test-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			t.Fatalf("os.RemoveAll: %v", err)
+		}
+	}()
 
 	t.Run("Missing", func(t *testing.T) {
 		err := EnsureInitialized(tmpDir)

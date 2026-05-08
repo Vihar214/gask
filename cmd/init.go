@@ -26,8 +26,7 @@ var initCmd = &cobra.Command{
 		}
 
 		// 1. Check if config already exists (Idempotency)
-		var cfg *config.Config
-		cfg, err = config.Load()
+		_, err = config.Load()
 		if err == nil {
 			fmt.Println("gask is already initialized in this directory.")
 			return nil
@@ -110,7 +109,7 @@ var initCmd = &cobra.Command{
 		}
 
 		if selectedEditor != "" {
-			cfg = &config.Config{Editor: selectedEditor}
+			cfg := &config.Config{Editor: selectedEditor}
 			if err := cfg.Save(); err != nil {
 				return fmt.Errorf("init: failed to save config: %w", err)
 			}

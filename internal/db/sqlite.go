@@ -37,7 +37,7 @@ func EnsureInitialized(dir string) error {
 		return nil
 	}
 	if os.IsNotExist(err) {
-		return fmt.Errorf("gask is not initialised in this directory. Run 'gask init' first.")
+		return fmt.Errorf("gask is not initialised in this directory. Run 'gask init' first")
 	}
 	return fmt.Errorf("failed to check initialization status of %s: %w", dbPath, err)
 }

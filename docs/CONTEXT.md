@@ -66,7 +66,6 @@ then immediately deleted. The Buffer never persists. Only its content (saved to 
 **The Registry**
 "Check the Registry" means query the DB. "Add to the Registry" means insert a task.
 The collection of all tasks stored in `.gask/gask.db`. What `gask list` renders.
-"Check the Registry" means query the DB. "Add to the Registry" means insert a task.
 
 **Local DB**
 The `.gask/gask.db` SQLite file inside the `.gask/` directory in the current working directory.
