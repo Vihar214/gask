@@ -2,7 +2,7 @@
 
 ## Status
 
-`ready-to-implement`
+`finished`
 
 ## Dependencies
 
@@ -251,15 +251,15 @@ var ErrNotFound = errors.New("task not found")
 
 ## 13. Acceptance Criteria
 
-- [ ] **AC1** — `go generate ./ent/...` runs without errors and produces a fully typed client.
-- [ ] **AC2** — `go build -o gask` compiles cleanly.
-- [ ] **AC3** — `./gask init` creates `.gask/gask.db` and prints the success message.
-- [ ] **AC4** — Running `./gask init` a second time prints the already-initialised message and exits cleanly without overwriting anything.
-- [ ] **AC5** — Running any command other than `init` without `.gask/` present exits with the "run gask init first" message.
-- [ ] **AC6** — Creating a task with an empty title returns a validation error. The DB is never touched.
-- [ ] **AC7** — Creating a task with a title over 100 characters returns a validation error. The DB is never touched.
-- [ ] **AC8** — `created_at` and `updated_at` are set automatically by Ent hooks. No `cmd/` code sets timestamps manually.
-- [ ] **AC9** — `go test ./internal/db/...` passes with no failures.
+- [x] **AC1** — `go generate ./ent/...` runs without errors and produces a fully typed client.
+- [x] **AC2** — `go build -o gask` compiles cleanly.
+- [x] **AC3** — `./gask init` creates `.gask/gask.db` and prints the success message.
+- [x] **AC4** — Running `./gask init` a second time prints the already-initialised message and exits cleanly without overwriting anything.
+- [x] **AC5** — Running any command other than `init` without `.gask/` present exits with the "run gask init first" message.
+- [x] **AC6** — Creating a task with an empty title returns a validation error. The DB is never touched.
+- [x] **AC7** — Creating a task with a title over 100 characters returns a validation error. The DB is never touched.
+- [x] **AC8** — `created_at` and `updated_at` are set automatically by Ent hooks. No `cmd/` code sets timestamps manually.
+- [x] **AC9** — `go test ./internal/db/...` passes with no failures.x
 
 ---
 
