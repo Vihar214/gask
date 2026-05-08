@@ -138,14 +138,14 @@ Always run `go generate ./ent/...` after every change to this file.
 
 ## 7. SQLite Configuration
 
-**Driver:** `modernc.org/sqlite` — pure Go, no CGO required.
+**Driver:** `github.com/mattn/go-sqlite3` — CGO required.
 
 **File path:** `.gask/gask.db` relative to the current working directory.
 
 **Connection string:**
 
 ```
-file:.gask/gask.db?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)
+file:.gask/gask.db?_fk=1&_journal_mode=WAL
 ```
 
 WAL mode is required for concurrent reads during writes. Foreign keys must be enabled explicitly — SQLite does not enable them by default.
@@ -269,7 +269,7 @@ All tests run against an **in-memory SQLite instance** — never against `.gask/
 
 ```go
 // In-memory connection string for tests only
-"file:testdb?mode=memory&cache=shared&_pragma=foreign_keys(1)"
+"file:testdb?mode=memory&cache=shared&_fk=1"
 ```
 
 ### Required test cases

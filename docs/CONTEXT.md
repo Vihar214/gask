@@ -64,11 +64,12 @@ It is a scratch space — written to disk as a temp file, read after Neovim exit
 then immediately deleted. The Buffer never persists. Only its content (saved to DB) survives.
 
 **The Registry**
-The collection of all tasks stored in `.gask.db`. What `gask list` renders.
+"Check the Registry" means query the DB. "Add to the Registry" means insert a task.
+The collection of all tasks stored in `.gask/gask.db`. What `gask list` renders.
 "Check the Registry" means query the DB. "Add to the Registry" means insert a task.
 
 **Local DB**
-The `.gask.db` SQLite file in the current working directory.
+The `.gask/gask.db` SQLite file inside the `.gask/` directory in the current working directory.
 It is project-scoped by design — tasks created inside `/my-project/` live there, not globally.
 There is no global task list unless the user explicitly runs gask from their home directory.
 
@@ -97,7 +98,7 @@ gask does not provide a text editing experience — it delegates entirely to the
 | buffer               | the temp `*.md` file in `editor.go`             |
 | polish / polishing   | calling `gask edit <id>` to write a description |
 | status update        | calling `gask status <id> <status>`             |
-| local DB             | `.gask.db` in the working directory             |
+| local DB             | `.gask/gask.db` in the working directory        |
 
 Always use these terms consistently in code, comments, error messages, and variable names.
 A variable holding a task description should be `description`, not `body`, `content`, or `notes`.

@@ -102,6 +102,23 @@ func TestUpdateStatus_InvalidEnum(t *testing.T) {
 	assert.Contains(t, err.Error(), "validation")
 }
 
+func TestUpdateDescription_TooLong(t *testing.T) {
+	repo, client := setupTestRepo(t)
+	defer client.Close()
+
+	ctx := context.Background()
+	task, err := repo.CreateTask(ctx, "Test Task")
+	require.NoError(t, err)
+
+	description := ""
+	for i := 0; i < 10001; i++ {
+		description += "a"
+	}
+	_, err = repo.UpdateDescription(ctx, task.ID, description)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "validation")
+}
+
 func TestGetAllTasks_Order(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer client.Close()

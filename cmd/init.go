@@ -26,7 +26,8 @@ var initCmd = &cobra.Command{
 		}
 
 		// 1. Check if config already exists (Idempotency)
-		cfg, err := config.Load()
+		var cfg *config.Config
+		cfg, err = config.Load()
 		if err == nil {
 			fmt.Println("gask is already initialized in this directory.")
 			return nil
@@ -37,9 +38,14 @@ var initCmd = &cobra.Command{
 
 		// 2. Create .gask/ directory if it doesn't exist
 		gaskDir := filepath.Join(cwd, ".gask")
-		if _, err := os.Stat(gaskDir); os.IsNotExist(err) {
-			if err := os.Mkdir(gaskDir, 0755); err != nil {
-				return fmt.Errorf("init: cannot create .gask/: %w", err)
+		_, err = os.Stat(gaskDir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				if err := os.Mkdir(gaskDir, 0755); err != nil {
+					return fmt.Errorf("init: cannot create .gask/: %w", err)
+				}
+			} else {
+				return fmt.Errorf("init: failed to check .gask directory: %w", err)
 			}
 		}
 
@@ -98,23 +104,26 @@ var initCmd = &cobra.Command{
 			fmt.Printf("Error: %v\n", err)
 			selectedEditor = "" // Reset for next loop
 			if attempts == 1 {
-				return fmt.Errorf("init: failed to configure editor after 3 attempts")
+				fmt.Println("Failed to configure editor after 3 attempts. Skipping editor configuration.")
+				break
 			}
 		}
 
-		if selectedEditor == "" {
-			return fmt.Errorf("init: failed to configure editor")
-		}
-
-		cfg = &config.Config{Editor: selectedEditor}
-		if err := cfg.Save(); err != nil {
-			return fmt.Errorf("init: failed to save config: %w", err)
+		if selectedEditor != "" {
+			cfg = &config.Config{Editor: selectedEditor}
+			if err := cfg.Save(); err != nil {
+				return fmt.Errorf("init: failed to save config: %w", err)
+			}
 		}
 
 		// 5. Print success message and the .gitignore hint
 		fmt.Printf("\n✓ initialized gask in .gask/\n")
 		fmt.Printf("  DB: .gask/gask.db\n")
-		fmt.Printf("  Editor: %s\n\n", selectedEditor)
+		if selectedEditor != "" {
+			fmt.Printf("  Editor: %s\n\n", selectedEditor)
+		} else {
+			fmt.Printf("  Editor: <none>\n\n")
+		}
 		fmt.Printf("Hint: add .gask/ to your .gitignore to keep tasks out of version control.\n")
 
 		return nil

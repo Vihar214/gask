@@ -23,11 +23,13 @@ func TestValidate(t *testing.T) {
 	// Test VS Code hint
 	path, err = Validate("code-not-here")
 	assert.Error(t, err)
+	assert.Empty(t, path)
 	assert.Contains(t, err.Error(), "VS Code")
 	assert.Contains(t, err.Error(), "Install 'code' command in PATH")
 
 	// Test empty input
 	path, err = Validate("")
 	assert.Error(t, err)
+	assert.Empty(t, path)
 	assert.Equal(t, "editor command cannot be empty", err.Error())
 }

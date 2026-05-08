@@ -23,8 +23,11 @@ func Load() (*Config, error) {
 	}
 
 	configPath := filepath.Join(cwd, ".gask", "config.json")
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return nil, ErrConfigNotFound
+	if _, err := os.Stat(configPath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, ErrConfigNotFound
+		}
+		return nil, fmt.Errorf("config load: failed to stat file: %w", err)
 	}
 
 	data, err := os.ReadFile(configPath)
@@ -48,9 +51,14 @@ func (c *Config) Save() error {
 	}
 
 	gaskDir := filepath.Join(cwd, ".gask")
-	if _, err := os.Stat(gaskDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(gaskDir, 0755); err != nil {
-			return fmt.Errorf("config save: failed to create .gask directory: %w", err)
+	_, err = os.Stat(gaskDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(gaskDir, 0755); err != nil {
+				return fmt.Errorf("config save: failed to create .gask directory: %w", err)
+			}
+		} else {
+			return fmt.Errorf("config save: failed to stat .gask directory: %w", err)
 		}
 	}
 
@@ -59,12 +67,16 @@ func (c *Config) Save() error {
 	if err != nil {
 		return fmt.Errorf("config save: failed to create config file: %w", err)
 	}
-	defer file.Close()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(c); err != nil {
+		file.Close()
 		return fmt.Errorf("config save: failed to encode json: %w", err)
+	}
+
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("config save: failed to close config file: %w", err)
 	}
 
 	return nil

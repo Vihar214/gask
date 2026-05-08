@@ -119,6 +119,14 @@ func (r *Repository) UpdateStatus(ctx context.Context, id int, status string) (*
 
 // UpdateDescription sets the Markdown description on a task.
 func (r *Repository) UpdateDescription(ctx context.Context, id int, description string) (*Task, error) {
+	// Validation
+	input := struct {
+		Description string `validate:"max=10000"`
+	}{Description: description}
+	if err := r.validate.Struct(input); err != nil {
+		return nil, fmt.Errorf("repository.UpdateDescription validation: %w", err)
+	}
+
 	et, err := r.client.Task.
 		UpdateOneID(id).
 		SetDescription(description).
