@@ -1,0 +1,13 @@
+# Binaries
+gask
+
+# gask files
+.gask/
+
+# Dependencies
+vendor/
+
+# IDE/Tooling
+.vscode/
+.idea/
+.DS_Store
