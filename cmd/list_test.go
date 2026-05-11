@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -14,8 +15,17 @@ func TestTruncateTitle(t *testing.T) {
 	// Truncation
 	longTitle := "This title is much longer than fifty characters and should be truncated."
 	truncated := truncateTitle(longTitle, 50)
-	assert.True(t, len(truncated) <= 50)
+	assert.True(t, utf8.RuneCountInString(truncated) <= 50)
 	assert.Contains(t, truncated, "…")
+
+	// Unicode
+	unicodeTitle := "🚀🚀🚀"
+	assert.Equal(t, unicodeTitle, truncateTitle(unicodeTitle, 5))
+	assert.Equal(t, "🚀…", truncateTitle(unicodeTitle, 2))
+
+	// Guards
+	assert.Equal(t, "…", truncateTitle("anything", 0))
+	assert.Equal(t, "…", truncateTitle("anything", -1))
 
 	// Empty
 	assert.Equal(t, "", truncateTitle("", 50))
@@ -28,8 +38,17 @@ func TestTruncateDescription(t *testing.T) {
 	// Truncation
 	longDesc := "This is a very long description that definitely exceeds eighty characters and must be cut down."
 	truncated := truncateDescription(longDesc, 80)
-	assert.True(t, len(truncated) <= 80)
+	assert.True(t, utf8.RuneCountInString(truncated) <= 80)
 	assert.Contains(t, truncated, "…")
+
+	// Unicode
+	unicodeDesc := "🚀🚀🚀"
+	assert.Equal(t, unicodeDesc, truncateDescription(unicodeDesc, 5))
+	assert.Equal(t, "🚀…", truncateDescription(unicodeDesc, 2))
+
+	// Guards
+	assert.Equal(t, "…", truncateDescription("anything", 0))
+	assert.Equal(t, "…", truncateDescription("anything", -1))
 }
 
 func TestFormatStatus(t *testing.T) {

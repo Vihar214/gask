@@ -34,7 +34,9 @@ func createTaskWithStatus(t *testing.T, repo *Repository, ctx context.Context, t
 
 func TestCreateTask_Success(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	title := "Test Task"
@@ -50,7 +52,9 @@ func TestCreateTask_Success(t *testing.T) {
 
 func TestCreateTask_EmptyTitle(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	_, err := repo.CreateTask(ctx, "")
@@ -61,7 +65,9 @@ func TestCreateTask_EmptyTitle(t *testing.T) {
 
 func TestCreateTask_TitleTooLong(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	title := ""
@@ -76,7 +82,9 @@ func TestCreateTask_TitleTooLong(t *testing.T) {
 
 func TestGetTaskByID_NotFound(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	_, err := repo.GetTaskByID(ctx, 999)
@@ -86,7 +94,9 @@ func TestGetTaskByID_NotFound(t *testing.T) {
 
 func TestListTasks_SortOrder(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 
@@ -109,7 +119,9 @@ func TestListTasks_SortOrder(t *testing.T) {
 
 func TestListTasks_Empty(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	tasks, err := repo.ListTasks(ctx)
@@ -119,7 +131,9 @@ func TestListTasks_Empty(t *testing.T) {
 
 func TestUpdateStatus_InvalidEnum(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	task, err := repo.CreateTask(ctx, "Test Task")
@@ -132,7 +146,9 @@ func TestUpdateStatus_InvalidEnum(t *testing.T) {
 
 func TestUpdateDescription_TooLong(t *testing.T) {
 	repo, client := setupTestRepo(t)
-	defer client.Close()
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
 
 	ctx := context.Background()
 	task, err := repo.CreateTask(ctx, "Test Task")
@@ -150,7 +166,11 @@ func TestUpdateDescription_TooLong(t *testing.T) {
 func TestEnsureInitialized(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "gask-test-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			t.Fatalf("failed to remove tmpDir %q: %v", tmpDir, err)
+		}
+	}()
 
 	t.Run("Missing", func(t *testing.T) {
 		err := EnsureInitialized(tmpDir)

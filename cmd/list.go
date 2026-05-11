@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"task-cli/internal/db"
 
@@ -20,7 +21,7 @@ var long bool
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all tasks",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return err
@@ -30,7 +31,16 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer client.Close()
+		defer func() {
+			closeErr := client.Close()
+			if closeErr != nil {
+				if err == nil {
+					err = closeErr
+				} else {
+					err = fmt.Errorf("%w; close error: %v", err, closeErr)
+				}
+			}
+		}()
 		repo := db.NewRepository(client)
 
 		ctx := context.Background()
@@ -112,7 +122,10 @@ func formatStatus(status string) string {
 }
 
 func truncateTitle(title string, maxLen int) string {
-	if len(title) <= maxLen {
+	if maxLen <= 0 {
+		return "…"
+	}
+	if utf8.RuneCountInString(title) <= maxLen {
 		return title
 	}
 	runes := []rune(title)
@@ -128,7 +141,10 @@ func truncateDescription(desc string, maxLen int) string {
 	if desc == "" {
 		return "—"
 	}
-	if len(desc) <= maxLen {
+	if maxLen <= 0 {
+		return "…"
+	}
+	if utf8.RuneCountInString(desc) <= maxLen {
 		return desc
 	}
 	runes := []rune(desc)
