@@ -19,6 +19,19 @@ func setupTestRepo(t *testing.T) (*Repository, *ent.Client) {
 	return NewRepository(client), client
 }
 
+func createTaskWithStatus(t *testing.T, repo *Repository, ctx context.Context, title, status string) *Task {
+	t.Helper()
+	task, err := repo.CreateTask(ctx, title)
+	if err != nil {
+		t.Fatalf("failed to create task: %v", err)
+	}
+	updated, err := repo.UpdateStatus(ctx, task.ID, status)
+	if err != nil {
+		t.Fatalf("failed to update task status: %v", err)
+	}
+	return updated
+}
+
 func TestCreateTask_Success(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer client.Close()
@@ -78,15 +91,10 @@ func TestListTasks_SortOrder(t *testing.T) {
 	ctx := context.Background()
 
 	// Create tasks in random order with different statuses
-	t1, _ := repo.CreateTask(ctx, "task 1 (todo)")
-	t2, _ := repo.CreateTask(ctx, "task 2 (doing)")
-	t3, _ := repo.CreateTask(ctx, "task 3 (done)")
-	t4, _ := repo.CreateTask(ctx, "task 4 (blocked)")
-
-	repo.UpdateStatus(ctx, t1.ID, "todo")
-	repo.UpdateStatus(ctx, t2.ID, "doing")
-	repo.UpdateStatus(ctx, t3.ID, "done")
-	repo.UpdateStatus(ctx, t4.ID, "blocked")
+	createTaskWithStatus(t, repo, ctx, "task 1 (todo)", "todo")
+	createTaskWithStatus(t, repo, ctx, "task 2 (doing)", "doing")
+	createTaskWithStatus(t, repo, ctx, "task 3 (done)", "done")
+	createTaskWithStatus(t, repo, ctx, "task 4 (blocked)", "blocked")
 
 	tasks, err := repo.ListTasks(ctx)
 	require.NoError(t, err)

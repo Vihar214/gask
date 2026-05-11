@@ -30,6 +30,7 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		defer client.Close()
 		repo := db.NewRepository(client)
 
 		ctx := context.Background()

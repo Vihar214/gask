@@ -77,14 +77,14 @@ func (r *Repository) ListTasks(ctx context.Context) ([]*Task, error) {
 		tasks[i] = mapEntToDomain(et)
 	}
 
-	sort.Slice(tasks, func(i, j int) bool {
-		statusOrder := map[string]int{
-			"doing":   0,
-			"todo":    1,
-			"blocked": 2,
-			"done":    3,
-		}
+	statusOrder := map[string]int{
+		"doing":   0,
+		"todo":    1,
+		"blocked": 2,
+		"done":    3,
+	}
 
+	sort.Slice(tasks, func(i, j int) bool {
 		if statusOrder[tasks[i].Status] != statusOrder[tasks[j].Status] {
 			return statusOrder[tasks[i].Status] < statusOrder[tasks[j].Status]
 		}
