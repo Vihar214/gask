@@ -2,7 +2,7 @@
 
 ## Status
 
-`complete`
+`finished`
 
 ## Dependencies
 

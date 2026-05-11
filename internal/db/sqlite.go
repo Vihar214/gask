@@ -13,7 +13,7 @@ import (
 
 // Open opens a connection to the SQLite database and runs auto-migrations.
 func Open(ctx context.Context, dbPath string) (*ent.Client, error) {
-	dsn := fmt.Sprintf("file:%s?_fk=1&_journal_mode=WAL&_synchronous=NORMAL&_busy_timeout=5000", dbPath)
+	dsn := fmt.Sprintf("file:%s?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_fk=1", dbPath)
 	client, err := ent.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed opening connection to sqlite: %w", err)
