@@ -2,7 +2,7 @@
 
 ## Status
 
-`approved`
+`finished`
 
 ## PRD Reference
 

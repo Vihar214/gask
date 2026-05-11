@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"task-cli/ent"
 	"task-cli/ent/task"
@@ -63,20 +64,33 @@ func (r *Repository) CreateTask(ctx context.Context, title string) (*Task, error
 	return mapEntToDomain(et), nil
 }
 
-// GetAllTasks returns all tasks ordered by created_at descending.
-func (r *Repository) GetAllTasks(ctx context.Context) ([]*Task, error) {
-	ets, err := r.client.Task.
-		Query().
-		Order(ent.Desc(task.FieldCreatedAt)).
-		All(ctx)
+// ListTasks returns all tasks sorted by status group then created_at ascending.
+// Sort order: doing → todo → blocked → done.
+func (r *Repository) ListTasks(ctx context.Context) ([]*Task, error) {
+	ets, err := r.client.Task.Query().All(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("repository.GetAllTasks: %w", err)
+		return nil, fmt.Errorf("repository.ListTasks: %w", err)
 	}
 
 	tasks := make([]*Task, len(ets))
 	for i, et := range ets {
 		tasks[i] = mapEntToDomain(et)
 	}
+
+	statusOrder := map[string]int{
+		"doing":   0,
+		"todo":    1,
+		"blocked": 2,
+		"done":    3,
+	}
+
+	sort.Slice(tasks, func(i, j int) bool {
+		if statusOrder[tasks[i].Status] != statusOrder[tasks[j].Status] {
+			return statusOrder[tasks[i].Status] < statusOrder[tasks[j].Status]
+		}
+		return tasks[i].CreatedAt.Before(tasks[j].CreatedAt)
+	})
+
 	return tasks, nil
 }
 

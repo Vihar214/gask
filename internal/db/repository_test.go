@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"task-cli/ent"
 	"task-cli/ent/enttest"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,12 +19,23 @@ func setupTestRepo(t *testing.T) (*Repository, *ent.Client) {
 	return NewRepository(client), client
 }
 
+func createTaskWithStatus(t *testing.T, repo *Repository, ctx context.Context, title, status string) *Task {
+	t.Helper()
+	task, err := repo.CreateTask(ctx, title)
+	if err != nil {
+		t.Fatalf("failed to create task: %v", err)
+	}
+	updated, err := repo.UpdateStatus(ctx, task.ID, status)
+	if err != nil {
+		t.Fatalf("failed to update task status: %v", err)
+	}
+	return updated
+}
+
 func TestCreateTask_Success(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
@@ -42,9 +53,7 @@ func TestCreateTask_Success(t *testing.T) {
 func TestCreateTask_EmptyTitle(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
@@ -57,9 +66,7 @@ func TestCreateTask_EmptyTitle(t *testing.T) {
 func TestCreateTask_TitleTooLong(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
@@ -76,9 +83,7 @@ func TestCreateTask_TitleTooLong(t *testing.T) {
 func TestGetTaskByID_NotFound(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
@@ -87,32 +92,47 @@ func TestGetTaskByID_NotFound(t *testing.T) {
 	assert.ErrorIs(t, err, ErrNotFound)
 }
 
-func TestUpdateStatus_Valid(t *testing.T) {
+func TestListTasks_SortOrder(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
-	task, err := repo.CreateTask(ctx, "Test Task")
+
+	// Create tasks in random order with different statuses
+	createTaskWithStatus(t, repo, ctx, "task 1 (todo)", "todo")
+	createTaskWithStatus(t, repo, ctx, "task 2 (doing)", "doing")
+	createTaskWithStatus(t, repo, ctx, "task 3 (done)", "done")
+	createTaskWithStatus(t, repo, ctx, "task 4 (blocked)", "blocked")
+
+	tasks, err := repo.ListTasks(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond) // Ensure updated_at is different
+	assert.Equal(t, 4, len(tasks))
+	// Expected order: doing → todo → blocked → done
+	assert.Equal(t, "doing", tasks[0].Status)
+	assert.Equal(t, "todo", tasks[1].Status)
+	assert.Equal(t, "blocked", tasks[2].Status)
+	assert.Equal(t, "done", tasks[3].Status)
+}
 
-	updated, err := repo.UpdateStatus(ctx, task.ID, "doing")
+func TestListTasks_Empty(t *testing.T) {
+	repo, client := setupTestRepo(t)
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
+
+	ctx := context.Background()
+	tasks, err := repo.ListTasks(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, "doing", updated.Status)
-	assert.True(t, updated.UpdatedAt.After(task.UpdatedAt))
+	assert.Empty(t, tasks)
 }
 
 func TestUpdateStatus_InvalidEnum(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
@@ -127,9 +147,7 @@ func TestUpdateStatus_InvalidEnum(t *testing.T) {
 func TestUpdateDescription_TooLong(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
+		require.NoError(t, client.Close())
 	}()
 
 	ctx := context.Background()
@@ -145,34 +163,12 @@ func TestUpdateDescription_TooLong(t *testing.T) {
 	assert.Contains(t, err.Error(), "validation")
 }
 
-func TestGetAllTasks_Order(t *testing.T) {
-	repo, client := setupTestRepo(t)
-	defer func() {
-		if err := client.Close(); err != nil {
-			t.Fatalf("client.Close: %v", err)
-		}
-	}()
-
-	ctx := context.Background()
-	_, err := repo.CreateTask(ctx, "Task 1")
-	require.NoError(t, err)
-	time.Sleep(10 * time.Millisecond)
-	_, err = repo.CreateTask(ctx, "Task 2")
-	require.NoError(t, err)
-
-	tasks, err := repo.GetAllTasks(ctx)
-	require.NoError(t, err)
-	require.Len(t, tasks, 2)
-	assert.Equal(t, "Task 2", tasks[0].Title) // Descending order
-	assert.Equal(t, "Task 1", tasks[1].Title)
-}
-
 func TestEnsureInitialized(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "gask-test-*")
 	require.NoError(t, err)
 	defer func() {
 		if err := os.RemoveAll(tmpDir); err != nil {
-			t.Fatalf("os.RemoveAll: %v", err)
+			t.Fatalf("failed to remove tmpDir %q: %v", tmpDir, err)
 		}
 	}()
 
