@@ -21,7 +21,7 @@ var addCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if _, err := os.Stat(".gask"); os.IsNotExist(err) {
-			return fmt.Errorf("Error: gask not initialized. Run 'gask init' first.")
+			return fmt.Errorf("Error: gask not initialized. Run 'gask init' first")
 		}
 
 		title := strings.Join(args, " ")

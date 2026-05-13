@@ -8,8 +8,12 @@ import (
 )
 
 func TestAddCommand_ValidateTitle(t *testing.T) {
+	tempDir := t.TempDir()
+	cwd, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(cwd)
+
 	os.Mkdir(".gask", 0755)
-	defer os.Remove(".gask")
 
 	tests := []struct {
 		name    string
