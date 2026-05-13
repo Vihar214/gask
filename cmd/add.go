@@ -99,7 +99,7 @@ var addCmd = &cobra.Command{
 		if description != "" {
 			_, err = repo.UpdateDescription(ctx, task.ID, description)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "! Warning: Description could not be saved: %v\n", err)
+				return fmt.Errorf("failed to update task description: %w", err)
 			}
 		}
 

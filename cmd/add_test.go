@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddCommand_ValidateTitle(t *testing.T) {
@@ -40,7 +41,7 @@ func TestAddCommand_ValidateTitle(t *testing.T) {
 			err := addCmd.RunE(addCmd, tt.args)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Equal(t, tt.errMsg, err.Error())
 			} else {
 				assert.NoError(t, err)
