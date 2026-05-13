@@ -98,7 +98,7 @@ func ResolveEditor(dir string) (string, error) {
 ```go
 var ErrNoEditor = errors.New(
     "$EDITOR is not set and no editor is configured. " +
-    "Run 'gask init' to configure one, or export EDITOR=nvim in your shell.",
+    "Run 'gask init' to configure one, or export EDITOR=<your-editor> in your shell (e.g., EDITOR=vim, EDITOR=code --wait, or EDITOR=nano).",
 )
 ```
 

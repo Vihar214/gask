@@ -20,6 +20,10 @@ var addCmd = &cobra.Command{
 	Short: "Add a new task",
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if _, err := os.Stat(".gask"); os.IsNotExist(err) {
+			return fmt.Errorf("Error: gask not initialized. Run 'gask init' first.")
+		}
+
 		title := strings.Join(args, " ")
 		title = strings.TrimSpace(title)
 
@@ -51,7 +55,9 @@ var addCmd = &cobra.Command{
 			return fmt.Errorf("failed to create temp file: %w", err)
 		}
 		tmpPath := tmpFile.Name()
-		tmpFile.Close()
+		if err := tmpFile.Close(); err != nil {
+			return fmt.Errorf("failed to close temp file: %w", err)
+		}
 		defer os.Remove(tmpPath)
 
 		// Open editor

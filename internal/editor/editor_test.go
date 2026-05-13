@@ -11,24 +11,34 @@ import (
 func TestResolveEditor(t *testing.T) {
 	// Backup and restore EDITOR env var
 	oldEditor := os.Getenv("EDITOR")
-	defer os.Setenv("EDITOR", oldEditor)
+	defer func() {
+		if err := os.Setenv("EDITOR", oldEditor); err != nil {
+			t.Fatalf("failed to restore EDITOR: %v", err)
+		}
+	}()
 
 	t.Run("prioritize $EDITOR", func(t *testing.T) {
-		os.Setenv("EDITOR", "vim")
+		if err := os.Setenv("EDITOR", "vim"); err != nil {
+			t.Fatalf("failed to set EDITOR: %v", err)
+		}
 		editor, err := ResolveEditor("nano")
 		assert.NoError(t, err)
 		assert.Equal(t, "vim", editor)
 	})
 
 	t.Run("fallback to config", func(t *testing.T) {
-		os.Setenv("EDITOR", "")
+		if err := os.Setenv("EDITOR", ""); err != nil {
+			t.Fatalf("failed to set EDITOR: %v", err)
+		}
 		editor, err := ResolveEditor("nano")
 		assert.NoError(t, err)
 		assert.Equal(t, "nano", editor)
 	})
 
 	t.Run("return error if both empty", func(t *testing.T) {
-		os.Setenv("EDITOR", "")
+		if err := os.Setenv("EDITOR", ""); err != nil {
+			t.Fatalf("failed to set EDITOR: %v", err)
+		}
 		editor, err := ResolveEditor("")
 		assert.ErrorIs(t, err, ErrNoEditor)
 		assert.Empty(t, editor)

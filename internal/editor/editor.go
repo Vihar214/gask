@@ -9,7 +9,7 @@ import (
 )
 
 // ErrNoEditor is returned when no editor can be resolved from environment or config.
-var ErrNoEditor = errors.New("no editor configured; set $EDITOR or run 'gask init'")
+var ErrNoEditor = errors.New("$EDITOR is not set and no editor is configured. Run 'gask init' to configure one, or export EDITOR=<your-editor> in your shell (e.g., EDITOR=vim, EDITOR=code --wait, or EDITOR=nano).")
 
 // EditorRunner is a function that returns an *exec.Cmd.
 // It is used for mocking the editor execution in tests.

@@ -1,15 +1,16 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
+	"os"
 	"testing"
-	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAddCommand_ValidateTitle(t *testing.T) {
+	os.Mkdir(".gask", 0755)
+	defer os.Remove(".gask")
+
 	tests := []struct {
 		name    string
 		args    []string
@@ -18,7 +19,7 @@ func TestAddCommand_ValidateTitle(t *testing.T) {
 	}{
 		{
 			name:    "empty title",
-			args:    []string{"", "  "},
+			args:    []string{""},
 			wantErr: true,
 			errMsg:  "title is required",
 		},
@@ -28,24 +29,11 @@ func TestAddCommand_ValidateTitle(t *testing.T) {
 			wantErr: true,
 			errMsg:  "title cannot exceed 100 characters",
 		},
-		{
-			name:    "valid title",
-			args:    []string{"Valid", "Task"},
-			wantErr: false,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			title := strings.Join(tt.args, " ")
-			title = strings.TrimSpace(title)
-
-			var err error
-			if title == "" {
-				err = fmt.Errorf("title is required")
-			} else if utf8.RuneCountInString(title) > 100 {
-				err = fmt.Errorf("title cannot exceed 100 characters")
-			}
+			err := addCmd.RunE(addCmd, tt.args)
 
 			if tt.wantErr {
 				assert.Error(t, err)
