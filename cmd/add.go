@@ -58,8 +58,6 @@ var addCmd = &cobra.Command{
 		if err := tmpFile.Close(); err != nil {
 			return fmt.Errorf("failed to close temp file: %w", err)
 		}
-		defer os.Remove(tmpPath)
-
 		// Open editor
 		if err := editor.Open(editorPath, tmpPath); err != nil {
 			return err
@@ -91,17 +89,12 @@ var addCmd = &cobra.Command{
 		repo := db.NewRepository(client)
 
 		ctx := context.Background()
-		task, err := repo.CreateTask(ctx, title)
+		task, err := repo.CreateTaskWithDescription(ctx, title, description)
 		if err != nil {
 			return fmt.Errorf("failed to create task: %w", err)
 		}
 
-		if description != "" {
-			_, err = repo.UpdateDescription(ctx, task.ID, description)
-			if err != nil {
-				return fmt.Errorf("failed to update task description: %w", err)
-			}
-		}
+		os.Remove(tmpPath)
 
 		fmt.Printf("✓ Task #%d created: \"%s\"\n", task.ID, title)
 		return nil

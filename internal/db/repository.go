@@ -64,6 +64,38 @@ func (r *Repository) CreateTask(ctx context.Context, title string) (*Task, error
 	return mapEntToDomain(et), nil
 }
 
+// CreateTaskWithDescription inserts a new task with an initial description in one transaction.
+func (r *Repository) CreateTaskWithDescription(ctx context.Context, title, description string) (*Task, error) {
+	// Validation
+	input := struct {
+		Title       string `validate:"required,min=1,max=100"`
+		Description string `validate:"max=10000"`
+	}{Title: title, Description: description}
+	if err := r.validate.Struct(input); err != nil {
+		return nil, fmt.Errorf("repository.CreateTaskWithDescription validation: %w", err)
+	}
+
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("repository.CreateTaskWithDescription tx: %w", err)
+	}
+
+	et, err := tx.Task.
+		Create().
+		SetTitle(title).
+		SetDescription(description).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("repository.CreateTaskWithDescription create: %w", tx.Rollback())
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("repository.CreateTaskWithDescription commit: %w", err)
+	}
+
+	return mapEntToDomain(et), nil
+}
+
 // ListTasks returns all tasks sorted by status group then created_at ascending.
 // Sort order: doing → todo → blocked → done.
 func (r *Repository) ListTasks(ctx context.Context) ([]*Task, error) {
