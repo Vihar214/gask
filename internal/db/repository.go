@@ -86,7 +86,11 @@ func (r *Repository) CreateTaskWithDescription(ctx context.Context, title, descr
 		SetDescription(description).
 		Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("repository.CreateTaskWithDescription create: %w", tx.Rollback())
+		saveErr := err
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return nil, fmt.Errorf("repository.CreateTaskWithDescription create: %w (rollback failed: %v)", saveErr, rbErr)
+		}
+		return nil, fmt.Errorf("repository.CreateTaskWithDescription create: %w", saveErr)
 	}
 
 	if err := tx.Commit(); err != nil {
