@@ -1,10 +1,44 @@
 package editor
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
+
+// ErrNoEditor is returned when no editor can be resolved from environment or config.
+var ErrNoEditor = errors.New("$EDITOR is not set and no editor is configured. Run 'gask init' to configure one, or export EDITOR=<your-editor> in your shell (e.g., EDITOR=vim, EDITOR=code --wait, or EDITOR=nano)")
+
+// EditorRunner is a function that returns an *exec.Cmd.
+// It is used for mocking the editor execution in tests.
+var EditorRunner = exec.Command
+
+// ResolveEditor returns the editor to use, prioritizing $EDITOR over the provided configEditor.
+func ResolveEditor(configEditor string) (string, error) {
+	if envEditor := os.Getenv("EDITOR"); envEditor != "" {
+		return envEditor, nil
+	}
+	if configEditor != "" {
+		return configEditor, nil
+	}
+	return "", ErrNoEditor
+}
+
+// Open spawns the editor to open the specified file.
+// It pipes Stdin, Stdout, and Stderr to the current process.
+func Open(editorPath string, filePath string) error {
+	cmd := EditorRunner(editorPath, filePath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("editor failed: %w", err)
+	}
+	return nil
+}
 
 // Validate checks if the given editor command is available in the system PATH.
 // It returns the full path to the executable if found, or an error with helpful hints.

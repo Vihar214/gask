@@ -80,6 +80,42 @@ func TestCreateTask_TitleTooLong(t *testing.T) {
 	assert.Contains(t, err.Error(), "validation")
 }
 
+func TestCreateTaskWithDescription_Success(t *testing.T) {
+	repo, client := setupTestRepo(t)
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
+
+	ctx := context.Background()
+	title := "Test Task"
+	description := "Test Description"
+	task, err := repo.CreateTaskWithDescription(ctx, title, description)
+
+	require.NoError(t, err)
+	assert.NotZero(t, task.ID)
+	assert.Equal(t, title, task.Title)
+	assert.Equal(t, description, task.Description)
+	assert.Equal(t, "todo", task.Status)
+}
+
+func TestCreateTaskWithDescription_ValidationError(t *testing.T) {
+	repo, client := setupTestRepo(t)
+	defer func() {
+		require.NoError(t, client.Close())
+	}()
+
+	ctx := context.Background()
+	// Title too long
+	title := ""
+	for i := 0; i < 101; i++ {
+		title += "a"
+	}
+	_, err := repo.CreateTaskWithDescription(ctx, title, "desc")
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "validation")
+}
+
 func TestGetTaskByID_NotFound(t *testing.T) {
 	repo, client := setupTestRepo(t)
 	defer func() {
