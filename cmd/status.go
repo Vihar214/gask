@@ -20,9 +20,13 @@ var statusCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
-			return fmt.Errorf("invalid task ID: %w", err)
+			return fmt.Errorf("invalid task ID: '%s'", args[0])
 		}
 		newStatus := args[1]
+		validStatuses := map[string]bool{"todo": true, "doing": true, "done": true, "blocked": true}
+		if !validStatuses[newStatus] {
+			return fmt.Errorf("invalid status: '%s'", newStatus)
+		}
 
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -37,7 +41,11 @@ var statusCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer client.Close()
+		defer func() {
+			if err := client.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to close database: %v\n", err)
+			}
+		}()
 
 		repo := db.NewRepository(client)
 
@@ -47,7 +55,7 @@ var statusCmd = &cobra.Command{
 		}
 
 		if task.Status == "done" && newStatus == "todo" && !forceStatus {
-			return fmt.Errorf("cannot transition from 'done' to 'todo' without --force")
+			return fmt.Errorf("Task #%d is already done. Are you sure you want to move it back to todo?\nRun: gask status %d todo --force", id, id)
 		}
 
 		_, err = repo.UpdateStatus(ctx, id, newStatus)
@@ -55,7 +63,7 @@ var statusCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("Task %d updated to '%s'\n", id, newStatus)
+		fmt.Printf("✓ Task #%d status updated: %s → %s\n", id, task.Status, newStatus)
 		return nil
 	},
 }
