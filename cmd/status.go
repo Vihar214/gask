@@ -55,7 +55,7 @@ var statusCmd = &cobra.Command{
 		}
 
 		if task.Status == "done" && newStatus == "todo" && !forceStatus {
-			return fmt.Errorf("Task #%d is already done. Are you sure you want to move it back to todo?\nRun: gask status %d todo --force", id, id)
+			return fmt.Errorf("task #%d is already done. Are you sure you want to move it back to todo?\nRun: gask status %d todo --force", id, id)
 		}
 
 		_, err = repo.UpdateStatus(ctx, id, newStatus)
